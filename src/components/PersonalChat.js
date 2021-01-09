@@ -49,7 +49,7 @@ function PersonalChat(props) {
     }, [roomId])
 
     useEffect(() => {
-        var pusher = new Pusher('c71cecedf5e8f36f2a2f', {
+        var pusher = new Pusher('907ee6bbccecf27950c2', {
             cluster: 'ap2'
         });
 

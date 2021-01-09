@@ -96,7 +96,7 @@ function Chat(props) {
     function getMembersString() {
         let ans = ""
         for(let i=0;i<members.length;i++) ans += members[i] + ", "
-        return ans.substring(0,ans.length-2).substring(0,100)
+        return ans.substring(0,ans.length-2).substring(0,75)
     }
 
     async function leaveRoom() {
