@@ -29,7 +29,7 @@ function Login(props) {
     return (
         <div className="login">
             <div className="login-container">
-                <img src="https://img.icons8.com/dusk/2x/whatsapp.png" alt="" />
+                <img src="https://cdn4.iconfinder.com/data/icons/sapphire-storm-1/32/color-web3-09-512.png" alt="" />
                 <div className="login-text">
                     <h2>Sign in to Whatsapp</h2>
                 </div>
