@@ -7,14 +7,6 @@ import axios from './axios.js';
 function SidebarChat(props) {
 
     const [newRoomName,setNewRoomName] = useState("")
-    // const [lastMessage, setLastMessage] = useState("...")
-
-    // useEffect(() => {
-    //     if(props.id) {
-    //         db.collection('rooms').doc(props.id)
-    //             .onSnapshot(snapshot => setLastMessage(snapshot.data().lastMessage))
-    //     }
-    // }, [])
     
     const createRoom = async (e) => {
         

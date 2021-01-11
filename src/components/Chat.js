@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { Avatar, IconButton } from '@material-ui/core';
-import { Add, AttachFile, SearchOutlined } from '@material-ui/icons';
-import AddIcon from '@material-ui/icons/Add';
-import MoreVert from '@material-ui/icons/MoreVert';
+import { Add, AttachFile, Clear} from '@material-ui/icons';
 import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon'
-import MicIcon from '@material-ui/icons/Mic';
 import DeleteIcon from '@material-ui/icons/Delete';
 import PeopleIcon from '@material-ui/icons/People';
 import './chat.css';
 import axios from './axios.js'
 import { Link, useParams } from 'react-router-dom'
 import Pusher from 'pusher-js';
-import Recorder from './Recorder.js'
+import Recorder from "./Recorder"
+import SeedColor from "seed-color"
+import Message from "./Message.js"
 
 function Chat(props) {
 
@@ -19,20 +18,68 @@ function Chat(props) {
     const [messages, setMessages] = useState([]);
     const [roomName, setRoomName] = useState("")
     const [newMember, setNewMember] = useState("")
-    const [showButton,setShowButton] = useState(true)
+    const [showButton, setShowButton] = useState(true)
     const [members, setMembers] = useState([])
     const [open, setOpen] = useState(false)
+    const [replyMessage, setReplyMessage] = useState(null)
     let roomId = useParams();
 
     const sendMessage = async (e) => {
         e.preventDefault();
-        await axios.post("/" + props.user.user._id + "/" + roomId.roomId + "/newMessage", {
-            message: input,
-            name: props.user.user.displayName,
-            timestamp: new Date().getTime(),
+        if(input){
+            setInput("");
+            if(replyMessage) {
+                await axios.post("/" + props.user.user._id + "/" + roomId.roomId + "/newMessage", {
+                    message: input,
+                    sender: props.user.user.displayName,
+                    timeStamp: new Date().getTime(),
+                    reply: true,
+                    parentMessageBody: replyMessage.message,
+                    parentMessageSender: replyMessage.sender
+                }).then((response) => {
+                    setReplyMessage(null)
+                })
+            }
+            else {
+                await axios.post("/" + props.user.user._id + "/" + roomId.roomId + "/newMessage", {
+                    message: input,
+                    sender: props.user.user.displayName,
+                    timeStamp: new Date().getTime(),
+                })
+            }
+        }
+        
+    }
 
-        })
-        setInput("");
+    function replyToMessage() {
+        if(replyMessage) return (
+            <div className="reply">      
+                <p style={
+                    {   
+                        borderRadius:"5px", 
+                        padding:"10px", 
+                        border: "1px solid " + SeedColor(replyMessage.sender).toHex(), 
+                        opacitiy: "0.5", 
+                        marginLeft: "5px",  
+                        marginTop: "5px",
+                        paddingLeft: "2px",
+                        flex: "1",
+                        fontSize:"12px" ,
+                        borderRight: "3px solid gray"
+                        }
+                }>
+                    <span className="chat-name" style={{ color: SeedColor(replyMessage.sender).toHex() }}> 
+                        {replyMessage.sender} 
+                    </span>
+                    {replyMessage.message.substring(0,270)}
+                </p>
+
+                <IconButton onClick={ () => {setReplyMessage(null)} }>
+                    <Clear/>
+                </IconButton>
+
+            </div>
+        )
     }
 
     useEffect(async () => {
@@ -56,9 +103,9 @@ function Chat(props) {
         var channel = pusher.subscribe('chatMessage');
         channel.bind('updated', async function (newMessage) {
             await axios.get("/rooms/" + roomId.roomId)
-            .then(response => {
-                setMessages(response.data.messages.reverse())
-            })
+                .then(response => {
+                    setMessages(response.data.messages.reverse())
+                })
         });
 
         return () => {
@@ -70,23 +117,22 @@ function Chat(props) {
 
     async function addMember(e) {
         e.preventDefault()
-        if(newMember.length > 0){
-        await axios.post("/" + roomId.roomId + "/addNewMember", {
-            email: newMember,
-            displayName: props.user.user.displayName
-        }).then(response => {
-            // alert(Object.values(response)[0])
-            if(String(Object.values(response)[0]) === "0") alert(newMember + " does not exist!")
-            setNewMember("")
-            
-        }).then(async () => {
-            await axios.get("/rooms/" + roomId.roomId)
-            .then(response => {
-                setMembers(response.data.members)
+        if (newMember.length > 0) {
+            await axios.post("/" + roomId.roomId + "/addNewMember", {
+                email: newMember,
+                displayName: props.user.user.displayName
+            }).then(response => {
+                // alert(Object.values(response)[0])
+                if (String(Object.values(response)[0]) === "0") alert(newMember + " does not exist!")
+                setNewMember("")
+            }).then(async () => {
+                await axios.get("/rooms/" + roomId.roomId)
+                    .then(response => {
+                        setMembers(response.data.members)
+                    })
             })
-        })
-    }
-    setShowButton(true)
+        }
+        setShowButton(true)
     }
 
     function getTextField() {
@@ -95,8 +141,10 @@ function Chat(props) {
 
     function getMembersString() {
         let ans = ""
-        for(let i=0;i<members.length;i++) ans += members[i] + ", "
-        return ans.substring(0,ans.length-2).substring(0,75)
+        for (let i = 0; i < members.length; i++) ans += members[i] + ", "
+        ans = ans.substring(0, ans.length - 2)
+        if (ans.length < 75) return ans
+        else return ans.substring(0, 75) + "..."
     }
 
     async function leaveRoom() {
@@ -106,19 +154,6 @@ function Chat(props) {
         })
     }
 
-    var stringToColour = function(str) {
-        var hash = 0;
-        for (var i = 0; i < str.length; i++) {
-          hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        var colour = '#';
-        for (var i = 0; i < 3; i++) {
-          var value = (hash >> (i * 8)) & 0xFF;
-          colour += ('00' + value.toString(16)).substr(-2);
-        }
-        return colour;
-      }
-    
     return (
         <div className="chat">
             <div className="chat-header">
@@ -127,84 +162,66 @@ function Chat(props) {
                     <h3>{roomName}</h3>
                     <p>{getMembersString()}</p>
                 </div>
+
                 <div className="chat-header-right">
-                    <IconButton>
-                        <Link to="/">
-                            <DeleteIcon onClick={leaveRoom}/> 
-                        </Link>
+                    
+                    <Link to="/">
+                        <IconButton>
+                            <DeleteIcon onClick={leaveRoom} className="custom-button" />
+                        </IconButton>
+                    </Link>
+                    
+
+                    <IconButton onClick={getTextField} className={showButton ? "" : "hidden"} >
+                        <Add className="custom-button"/>
                     </IconButton>
-                    <IconButton onClick={getTextField} className={showButton ? "" : "hidden"} > 
-                        <Add /> 
-                    </IconButton>
+
                     <form className={!showButton ? "" : "hidden"}>
-                        <input type="email" value={newMember} placeholder="Enter email" 
+                        <input type="email" value={newMember} placeholder="Enter email"
                             onChange={(e) => setNewMember(e.target.value)}/>
                         <button className="hidden" type="submit" onClick={addMember}>Submit</button>
                     </form>
 
-                    <IconButton>
-                        <SearchOutlined />
-                    </IconButton>
                     <IconButton onBlur={() => open && setOpen(false)} onFocus={() => setOpen(true)}>
-                        <PeopleIcon/>
+                        <PeopleIcon className="custom-button"/>
                     </IconButton>
                     {open && (
-                            <div className="dropDown">
+                        <div className="dropDown">
                             <p className="groupMembers">Group Members</p>
                             {members.map((member) => (
                                     <p className="memberElement">{member}</p>
                                 )
                             )}
-                            </div>
+
+                        </div>
                         )
                     }
                 </div>
             </div>
             <div className="chat-body">
-                {messages.map((message) => 
-                    
-                    message.type && message.type === "audio" ? (
-                        <p className={"chat-message" + (props.user.user.displayName === message.sender ? " chat-receiver" : "")}>
-                            <span className="chat-name" style={{color: stringToColour(message.sender)}}> {message.sender} </span>
-                            <div className="audio">
-                                <audio
-                                    controls
-                                    src={message.media}>
-                                    Your browser does not support the
-                                    <code>audio</code> element.
-                                </audio>
-                                
-                                <span className="chat-time">{new Date(message.timeStamp).toLocaleTimeString()}</span>
-                            </div>
-                        </p>
-                    )
-                    :(message.type ? (
-                        <div className="notif">
-                            <p>{message.sender} {message.message}</p>
-                        </div>
-                    ) : 
-                    (
-                    
-                    <p className={"chat-message" + (message.sender === props.user.user.displayName ? " chat-receiver" : "")} >
-                        <span className="chat-name" style={{color: stringToColour(message.sender)}} > {message.sender} </span>
-                        {message.message}
-                        <span className="chat-time">{new Date(message.timeStamp).toLocaleTimeString()}</span>
-                    </p>
-                )))}
-
+                
+                { messages.map(message => <Message message={message} user={props.user} 
+                            setReplyMessage={setReplyMessage} />)}
+                            
             </div>
-            <div className="chat-footer">
-                <IconButton>
-                    <InsertEmoticonIcon />
-                </IconButton>
-                <IconButton>
-                    <AttachFile className="rotate-icon" />
-                </IconButton>
-                <form>
-                    <input placeholder="Type a message" type="text" value={input} onChange={e => setInput(e.target.value)} />
-                    <button type="submit" onClick={sendMessage}>Send message</button>
-                </form>
-                <Recorder user={props.user} roomId={roomId.roomId} />
+
+            <div className="chat-footer-reply">
+
+                {replyToMessage()}
+
+                <div className="chat-footer">
+                    <form style={{margin: "5px"}}>
+                        <input placeholder="Type a message" type="text" value={input} onChange={e => setInput(e.target.value)} autoFocus={true} />
+                        <button type="submit" onClick={sendMessage}>Send message</button>
+                    </form>
+                    <IconButton>
+                        <InsertEmoticonIcon className="custom-button"/>
+                    </IconButton>
+                    <IconButton>
+                        <AttachFile className="rotate-icon custom-button" />
+                    </IconButton>
+                    <Recorder user={props.user} roomId={roomId.roomId} />
+                </div>
             </div>
         </div>
     )

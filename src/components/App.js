@@ -10,6 +10,7 @@ import { BrowserRouter as Router, Switch } from 'react-router-dom';
 import Login from './Login.js'
 import { auth, provider } from '../firebase.js';
 import firebase from 'firebase';
+import Welcome from './Welcome.js';
 
 function App() {
     const [user, setUser] = useState(null);
@@ -26,7 +27,7 @@ function App() {
                     <div className="app-body">
 
                         <Router>
-                            <Sidebar user={user} setUser={setUser}/>
+                            
                             <Switch>
                                 <Route path="/rooms/:roomId">
                                     <Chat user={user} />
@@ -35,9 +36,10 @@ function App() {
                                     <PersonalChat user={user} />
                                 </Route>
                                 <Route path="/">
-
+                                    <Welcome />
                                 </Route>
                             </Switch>
+                            <Sidebar user={user} setUser={setUser}/>
                         </Router>
 
                     </div>

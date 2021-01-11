@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { Avatar, IconButton } from '@material-ui/core';
-import { Add, AttachFile, Block, Pause, PlayArrow, SearchOutlined, Send } from '@material-ui/icons';
-import AddIcon from '@material-ui/icons/Add';
-import MoreVert from '@material-ui/icons/MoreVert';
+import {Clear, AttachFile, Block, SearchOutlined } from '@material-ui/icons';
 import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon'
-import MicIcon from '@material-ui/icons/Mic';
-import DeleteIcon from '@material-ui/icons/Delete';
-import PeopleIcon from '@material-ui/icons/People';
 import './chat.css';
 import axios from './axios.js'
 import { Link, useParams } from 'react-router-dom'
 import Pusher from 'pusher-js';
 import Recorder from './Recorder.js'
+import SeedColor from "seed-color"
+import Message from "./Message.js"
 
 function PersonalChat(props) {
 
@@ -20,18 +17,33 @@ function PersonalChat(props) {
     const [roomName, setRoomName] = useState("")
     const [member1, setMember1] = useState({})
     const [member2, setMember2] = useState({})
-
+    const [replyMessage, setReplyMessage] = useState(null)
 
     let roomId = useParams();
 
     const sendMessage = async (e) => {
         e.preventDefault();
-        await axios.post("/" + props.user.user._id + "/" + roomId.roomId + "/newMessage", {
+        if(input){
+            setInput("");
+        if(replyMessage) {
+            await axios.post("/" + props.user.user._id + "/" + roomId.roomId + "/newMessage", {
+                message: input,
+                sender: props.user.user.displayName,
+                timeStamp: new Date().getTime(),
+                reply: true,
+                parentMessageBody: replyMessage.message,
+                parentMessageSender: replyMessage.sender
+            }).then((response) => {
+                setReplyMessage(null)
+            })
+        }
+        else await axios.post("/" + props.user.user._id + "/" + roomId.roomId + "/newMessage", {
             message: input,
-            name: props.user.user.displayName,
-            timestamp: new Date().getTime(),
+            sender: props.user.user.displayName,
+            timeStamp: new Date().getTime(),
         })
-        setInput("");
+    }
+        
     }
 
     useEffect(async () => {
@@ -75,6 +87,39 @@ function PersonalChat(props) {
         })
     }
 
+    function replyToMessage() {
+        if(replyMessage) return (
+            <div className="reply">
+                
+                <p style={
+                    {   borderRadius:"5px", 
+                        padding:"10px", 
+                        border: "1px solid " + SeedColor(replyMessage.sender).toHex(), 
+                        // backgroundColor: 'white', 
+                        opacitiy: "0.5", 
+                        marginLeft: "5px",  
+                        marginTop: "5px",
+                        paddingLeft: "2px",
+                        flex: "1",
+                        fontSize:"12px" ,
+                        borderRight: "3px solid gray"
+
+                        }}>
+
+                    <span className="chat-name" style={{ color: SeedColor(replyMessage.sender).toHex() }}> 
+                        {replyMessage.sender} 
+                    </span>           
+                    {replyMessage.message.substring(0,270)}
+                </p>
+
+                <IconButton onClick={ () => {setReplyMessage(null)} }>
+                    <Clear/>
+                </IconButton>
+
+            </div>
+        )
+    }
+
 
 
     return (
@@ -86,15 +131,14 @@ function PersonalChat(props) {
                     <h3>{roomName}</h3>
                     <p>online</p>
                 </div>
-                <div className="chat-header-right">
+                <div className="chat-header-right">       
+                    <Link to="/">
+                        <IconButton>
+                            <Block onClick={leaveRoom} className="custom-button"/>
+                        </IconButton>
+                    </Link>
                     <IconButton>
-                        <Link to="/">
-                            <Block onClick={leaveRoom} />
-                        </Link>
-                    </IconButton>
-
-                    <IconButton>
-                        <SearchOutlined />
+                        <SearchOutlined className="custom-button"/>
                     </IconButton>
 
                 </div>
@@ -102,52 +146,26 @@ function PersonalChat(props) {
             <div className="chat-body">
 
 
-
-            {messages.map((message) =>
-                    message.type && message.type === "audio" ? (
-                        <p className={"chat-message" + (props.user.user.displayName === message.sender ? " chat-receiver" : "")}>
-                            <div className="audio">
-                                {props.user.user.displayName === message.sender && <Avatar src={member1.displayName === message.sender ?
-                                    member1.photoURL : member2.photoURL} />}
-                                <audio
-                                    controls
-                                    src={message.media}>
-                                    Your browser does not support the
-                                    <code>audio</code> element.
-                                </audio>
-                                {props.user.user.displayName !== message.sender && <Avatar src={member1.displayName === message.sender ?
-                                    member1.photoURL : member2.photoURL} />}
-                                <span className="chat-time">{new Date(message.timeStamp).toLocaleTimeString()}</span>
-                            </div>
-                        </p>
-                    ) : message.type && message.type === "notif" ? (
-                                    <div>  
-                                    </div>
-                                ) : (
-                        (
-                            <p className={"chat-message" + (message.sender === props.user.user.displayName ? " chat-receiver" : "")} >
-                                {message.message}
-                                <span className="chat-time">{new Date(message.timeStamp).toLocaleTimeString()}</span>
-                            </p>
-                        )))}
-
+                {messages.map(message => <Message message={message} user={props.user} 
+                            setReplyMessage={setReplyMessage} 
+                            personal member1={member1} member2={member2}/>)}
             </div>
-            <div className="chat-footer">
-                <IconButton>
-                    <InsertEmoticonIcon />
-                </IconButton>
-                <IconButton>
-                    <AttachFile className="rotate-icon" />
-                </IconButton>
+            <div className="chat-footer-reply">
+                {replyToMessage()}
+                <div className="chat-footer">
+                    <form style={{margin: "5px"}}>
+                        <input placeholder="Type a message" type="text" value={input} onChange={e => setInput(e.target.value)} autoFocus = {true} />
+                        <button type="submit" onClick={sendMessage}>Send message</button>
+                    </form>
+                    <IconButton>
+                        <InsertEmoticonIcon className="custom-button"/>
+                    </IconButton>
+                    <IconButton>
+                        <AttachFile className="rotate-icon custom-button"/>
+                    </IconButton>
+                    <Recorder user={props.user} roomId={roomId.roomId} />
 
-                <form>
-                    <input placeholder="Type a message" type="text" value={input} onChange={e => setInput(e.target.value)} />
-                    <button type="submit" onClick={sendMessage}>Send message</button>
-                </form>
-
-
-                <Recorder user={props.user} roomId={roomId.roomId} />
-
+                </div>
             </div>
         </div>
     )

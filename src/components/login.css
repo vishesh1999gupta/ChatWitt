@@ -23,6 +23,10 @@
 .login-container > button {
     margin-top: 50px;
     text-transform: inherit !important;
-    background-color: #0a8d48;
+    background-color: #4E5AEA;
     color: #fff;
+    outline: none;
+    border: none;
+    border-radius: 3px;
+    height: 40px;
 }

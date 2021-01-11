@@ -1,5 +1,5 @@
 .chat {
-    flex: 0.7;
+    flex: 0.75;
     display: flex;
     flex-direction: column;
 }
@@ -33,29 +33,49 @@
 }
 
 .chat-body {
-    background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
+    background-image: url("https://i.pinimg.com/474x/33/5a/49/335a495d28d53d0cfd3e567335661b52.jpg");
     flex: 1;
     background-repeat: repeat;
     padding: 30px;
     overflow: auto;
     display: flex;
     flex-direction: column-reverse;
-    /* flex-direction: column; */
+}
+
+.chat-poora {
+    display: flex;
+    width: fit-content;
+    margin-bottom: 30px;
+    max-width: 60%;
+    word-break: break-all 
+}
+
+.chat-poora-right {
+    margin-left: auto;
+    max-width: 70%;
+    /* align-self: right; */
+}
+
+.chat-poora > .MuiSvgIcon-root {
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .chat-message {
+    margin-top: 2px;
     position: relative;
     font-size: 16px;
     padding: 10px;
     border-radius: 10px;
     width: fit-content;
     background-color: #fff;
-    margin-bottom: 30px;
+    float: left;
+    background-color: rgb(255, 255, 255,0.95);
 }
 
 .chat-receiver {
     margin-left: auto;
-    background-color: #dcf8c6;
+    background-color: #3da6fcfa;
 }
 
 .notif {
@@ -77,10 +97,22 @@
 }
 
 .chat-time {
-    margin-left: 10px;
+    text-align: right;
+    
+    float: right;
     font-size: x-small;
     position: relative;
     top: 5px;
+}
+
+.chat-footer-reply {
+    display: flex;
+    flex-direction: column;
+}
+
+.reply {
+    display: flex;
+    flex-direction: row;
 }
 
 .chat-footer {
@@ -89,6 +121,7 @@
     align-items: center;
     height: 62px;
     border-top: 1px solid lightgray;
+    /* background-color: #4E5AEA; */
 }
 
 .chat-footer > form {
@@ -145,12 +178,11 @@
     max-width: 340px;
     box-shadow: 0 2px 5px 0 rgba(0,0,0,.26),0 2px 10px 0 rgba(0,0,0,.16);
     position: absolute;
-    top: 105px;
+    top: 90px;
     width: 150px;
-    right: 85px;
+    right: 335px;
     /* transform: translate(-20%); */
-    background-color: rgba(255, 255, 255, 0.95);
-    /* color: #dcf8c6; */
+    background-color: rgb(255, 255, 255,0.95);
     border: lightgray;
     border-radius: 2px;
     padding: 20px;
@@ -167,23 +199,18 @@
 }
 
 .recorder {
-    /* position: absolute;
-    z-index: -1; */
     display: none !important;
 }
 
 .audio {
     display: flex;
     align-items: center;
-    /* background-color: #dcf8c6; */
-    /* padding: 10px; */
-    /* border-radius: 30px; */
     width: fit-content;
 }
 
 .audio > audio {
-    margin: 5px;   
-    
+    margin-left: 5px;   
+    margin-right: 5px;
     outline: none;
     border: none;
     /* background-color: #dcf8c6 !important;  */
