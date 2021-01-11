@@ -109,7 +109,7 @@ function PersonalChat(props) {
                     <span className="chat-name" style={{ color: SeedColor(replyMessage.sender).toHex() }}> 
                         {replyMessage.sender} 
                     </span>           
-                    {replyMessage.message.substring(0,270)}
+                    {replyMessage.message.substring(0,120)}
                 </p>
 
                 <IconButton onClick={ () => {setReplyMessage(null)} }>
